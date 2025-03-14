@@ -1,3 +1,32 @@
+# 1. À partir du scénario suivant, modélisez et créez la base de données SQL :
+# Un client peut effectuer une ou plusieurs réservations, Les coordonnées 
+# du client enregistrés lors de la réservation sont le Nom, Prénom,
+# Date de Naissance, Adresse, Pays d'origine, Nationalité, N d’identité 
+# ou N de passeport, Email et N de Téléphone, Une réservation peut concerner 
+# une ou plusieurs chambres de l’hotel (un client peut choisir plusieurs 
+# chambres dans une réservation).
+# Dans une réservation, une chambre est réservée selon une durée, date de début,
+# date de fin et Tarif total a payer, Chaque chambre appartient 
+# a une et une seule catégorie de chambres, Chaque catégorie est 
+# caractérisée par son nom, sa description et le prix par nuitée 
+# des chambres lui appartenant. Après la réservation, le client 
+# procède a un paiement qui correspond a une et une seule réservation. 
+# Pour chaque paiement, on enregistre sa date, son heure, le N de carte 
+# de débit et le nom de banque du client ainsi qu’un code de transaction
+# L'objectif est d'écrire le script SQL permettant de créer ces tables avec les bonnes relations.
+
+# 2. Insertion de Données
+# Ajoutez au moins 10 clients, 5 catégories de chambres, 15 réservations et 15 paiements.
+# Vérifiez l’intégrité des données (ex : une réservation doit être liée à un client).
+
+# 3. SQL Challenge
+# Répondez aux requêtes suivantes le plus vite possible :
+# Lister tous les clients ayant réservé plusieurs chambres.
+# Calculer le chiffre d’affaires total de l’hôtel sur un mois donné.
+# Trouver la catégorie de chambre la plus réservée.
+# L’équipe la plus rapide et précise remporte le challenge.
+# ------------------------------------------------------
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 import mysql.connector
@@ -14,6 +43,7 @@ cursor = conn.cursor()
 # Fenêtre principale
 root = tk.Tk()
 root.title("Gestion d'Hôtel")
+
 
 # *** Gestion des Réservations ***
 def afficher_reservations():
@@ -44,106 +74,6 @@ def ajouter_reservation():
         messagebox.showinfo("Succès", "Réservation ajoutée avec succès.")
     except mysql.connector.Error as err:
         messagebox.showerror("Erreur", f"Erreur lors de l'ajout : {err}")
-
-def ajouter_reservation():
-    id_client = entry_id_client.get()
-    date_debut = entry_date_debut.get()
-    date_fin = entry_date_fin.get()
-    tarif_total = entry_tarif_total.get()
-
-    try:
-        # Vérifier si le client existe
-        cursor.execute("SELECT * FROM client WHERE id = %s", (id_client,))
-        client = cursor.fetchone()
-
-        if not client:
-            # Si le client n'existe pas, ajouter le client
-            ajouter_client_popup = tk.Toplevel(root)
-            ajouter_client_popup.title("Ajouter un client")
-
-            # Champs pour ajouter un nouveau client
-            tk.Label(ajouter_client_popup, text="Nom").grid(row=0, column=0)
-            popup_nom = tk.Entry(ajouter_client_popup)
-            popup_nom.grid(row=0, column=1)
-
-            tk.Label(ajouter_client_popup, text="Prénom").grid(row=1, column=0)
-            popup_prenom = tk.Entry(ajouter_client_popup)
-            popup_prenom.grid(row=1, column=1)
-
-            tk.Label(ajouter_client_popup, text="Date de Naissance").grid(row=2, column=0)
-            popup_date_naissance = tk.Entry(ajouter_client_popup)
-            popup_date_naissance.grid(row=2, column=1)
-
-            tk.Label(ajouter_client_popup, text="Adresse").grid(row=3, column=0)
-            popup_adresse = tk.Entry(ajouter_client_popup)
-            popup_adresse.grid(row=3, column=1)
-
-            tk.Label(ajouter_client_popup, text="Pays d'origine").grid(row=4, column=0)
-            popup_pays = tk.Entry(ajouter_client_popup)
-            popup_pays.grid(row=4, column=1)
-
-            tk.Label(ajouter_client_popup, text="Nationalité").grid(row=5, column=0)
-            popup_nationalite = tk.Entry(ajouter_client_popup)
-            popup_nationalite.grid(row=5, column=1)
-
-            tk.Label(ajouter_client_popup, text="Numéro d'identité").grid(row=6, column=0)
-            popup_identite = tk.Entry(ajouter_client_popup)
-            popup_identite.grid(row=6, column=1)
-
-            tk.Label(ajouter_client_popup, text="Email").grid(row=7, column=0)
-            popup_email = tk.Entry(ajouter_client_popup)
-            popup_email.grid(row=7, column=1)
-
-            tk.Label(ajouter_client_popup, text="Téléphone").grid(row=8, column=0)
-            popup_telephone = tk.Entry(ajouter_client_popup)
-            popup_telephone.grid(row=8, column=1)
-
-            # Fonction pour sauvegarder le client
-            def sauvegarder_client():
-                try:
-                    cursor.execute("""
-                    INSERT INTO client (nom, prenom, date_naissance, adresse, pays_origine, nationalite, numero_identite, email, telephone)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """, (
-                        popup_nom.get(),
-                        popup_prenom.get(),
-                        popup_date_naissance.get(),
-                        popup_adresse.get(),
-                        popup_pays.get(),
-                        popup_nationalite.get(),
-                        popup_identite.get(),
-                        popup_email.get(),
-                        popup_telephone.get()
-                    ))
-                    conn.commit()
-                    ajouter_client_popup.destroy()
-                    messagebox.showinfo("Succès", "Client ajouté avec succès.")
-                except mysql.connector.Error as err:
-                    messagebox.showerror("Erreur", f"Erreur lors de l'ajout du client : {err}")
-
-            tk.Button(ajouter_client_popup, text="Enregistrer le client", command=sauvegarder_client).grid(row=9, column=0, columnspan=2)
-            return  # Attendre que le client soit ajouté avant d'ajouter la réservation
-
-        # Si le client existe ou vient d'être ajouté, ajouter la réservation
-        cursor.execute("""
-        INSERT INTO reservation (id_client, date_debut, date_fin, tarif_total) 
-        VALUES (%s, %s, %s, %s)
-        """, (id_client, date_debut, date_fin, tarif_total))
-        conn.commit()
-        afficher_reservations()
-        messagebox.showinfo("Succès", "Réservation ajoutée avec succès.")
-    except mysql.connector.Error as err:
-        messagebox.showerror("Erreur", f"Erreur lors de l'ajout de la réservation : {err}")
-
-
-# Afficher les clients existants
-def afficher_clients():
-    cursor.execute("SELECT * FROM client")
-    clients = cursor.fetchall()
-    for item in tableau_clients.get_children():
-        tableau_clients.delete(item)
-    for client in clients:
-        tableau_clients.insert("", "end", values=client)
 
 
 
@@ -223,31 +153,13 @@ def ajouter_paiement():
 tabs = ttk.Notebook(root)
 tab_reservations = ttk.Frame(tabs)
 tab_paiements = ttk.Frame(tabs)
-# tab_clients = ttk.Frame(tabs)
 tabs.add(tab_reservations, text="Réservations")
 tabs.add(tab_paiements, text="Paiements")
-# tabs.add(tab_clients, text="Clients")
 tabs.pack(expand=1, fill="both")
 
 # *** Tab Réservations ***
 frame_reservations = ttk.Frame(tab_reservations)
-frame_reservations.pack(pady=7)
-
-
-# *** Ajout d'un tableau des clients dans l'onglet Réservations ***
-frame_clients_reservations = ttk.Frame(tab_reservations)
-frame_clients_reservations.pack(pady=7)
-
-tk.Label(frame_clients_reservations, text="Liste des clients existants").pack()
-tableau_clients = ttk.Treeview(frame_clients_reservations, columns=("id", "nom", "prenom", "date_naissance", "adresse", "pays_origine", "nationalite", "numero_identite", "email", "telephone"), show="headings")
-for col in tableau_clients["columns"]:
-    tableau_clients.heading(col, text=col)
-tableau_clients.pack()
-
-# Bouton pour afficher les clients après l'ajout d'un client ou plusieurs clients
-tk.Button(frame_clients_reservations, text="Afficher les Clients", command=afficher_clients).pack(pady=10)
-
-
+frame_reservations.pack(pady=10)
 
 tableau_reservations = ttk.Treeview(frame_reservations, columns=("id", "nom", "prenom", "date_debut", "date_fin", "tarif_total"), show="headings")
 for col in tableau_reservations["columns"]:
@@ -255,7 +167,7 @@ for col in tableau_reservations["columns"]:
 tableau_reservations.pack()
 
 frame_form_reservations = ttk.Frame(tab_reservations)
-frame_form_reservations.pack(pady=7)
+frame_form_reservations.pack(pady=10)
 
 tk.Label(frame_form_reservations, text="ID Client").grid(row=0, column=0)
 entry_id_client = tk.Entry(frame_form_reservations)
@@ -280,7 +192,7 @@ tk.Button(tab_reservations, text="Afficher les Réservations", command=afficher_
 
 # *** Tab Paiements ***
 frame_paiements = ttk.Frame(tab_paiements)
-frame_paiements.pack(pady=7)
+frame_paiements.pack(pady=10)
 
 tableau_paiements = ttk.Treeview(frame_paiements, columns=("id", "reservation_id", "date_paiement", "heure_paiement", "numero_carte", "nom_banque", "code_transaction"), show="headings")
 for col in tableau_paiements["columns"]:
@@ -310,17 +222,150 @@ tk.Label(frame_form_paiements, text="Nom Banque").grid(row=4, column=0)
 entry_nom_banque = tk.Entry(frame_form_paiements)
 entry_nom_banque.grid(row=4, column=1)
 
-tk.Label(frame_form_paiements, text="Code Transaction").grid(row=5, column=0)
-entry_code_transaction = tk.Entry(frame_form_paiements)
-entry_code_transaction.grid(row=5, column=1)
+tk.Label(frame_form_paiements, text="Code Transaction")
 
-tk.Button(frame_form_paiements, text="Ajouter Paiement", command=ajouter_paiement).grid(row=6, column=0, columnspan=2)
-tk.Button(tab_paiements, text="Afficher les Paiements", command=afficher_paiements).pack(pady=10)
+# ----------------------------------------------------------------------------------
+import tkinter as tk
+from tkinter import ttk, messagebox
+import mysql.connector
 
-# Charger les données au démarrage
-afficher_reservations()
-afficher_paiements()
+# Connexion à MySQL
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="357321zM@.",  # Remplacez par votre mot de passe
+    database="hotel"  # Base de données existante
+)
+cursor = conn.cursor()
+
+# Fenêtre principale
+root = tk.Tk()
+root.title("Gestion d'Hôtel")
+
+
+# *** Gestion des Clients ***
+def afficher_clients():
+    cursor.execute("SELECT * FROM client")
+    clients = cursor.fetchall()
+    for item in tableau_clients.get_children():
+        tableau_clients.delete(item)
+    for client in clients:
+        tableau_clients.insert("", "end", values=client)
+
+def ajouter_client():
+    nom = entry_nom.get()
+    prenom = entry_prenom.get()
+    date_naissance = entry_date_naissance.get()
+    adresse = entry_adresse.get()
+    pays_origine = entry_pays.get()
+    nationalite = entry_nationalite.get()
+    numero_identite = entry_identite.get()
+    email = entry_email.get()
+    telephone = entry_telephone.get()
+
+    try:
+        cursor.execute("""
+        INSERT INTO client (nom, prenom, date_naissance, adresse, pays_origine, nationalite, numero_identite, email, telephone)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (nom, prenom, date_naissance, adresse, pays_origine, nationalite, numero_identite, email, telephone))
+        conn.commit()
+        afficher_clients()
+        messagebox.showinfo("Succès", "Client ajouté avec succès.")
+    except mysql.connector.Error as err:
+        messagebox.showerror("Erreur", f"Erreur lors de l'ajout : {err}")
+
+# *** Gestion des Chambres ***
+def afficher_chambres():
+    cursor.execute("""
+    SELECT chambre.id, chambre.numero_chambre, categorie_chambre.nom, categorie_chambre.prix_par_nuit 
+    FROM chambre
+    JOIN categorie_chambre ON chambre.id_categorie = categorie_chambre.id
+    """)
+    chambres = cursor.fetchall()
+    for item in tableau_chambres.get_children():
+        tableau_chambres.delete(item)
+    for chambre in chambres:
+        tableau_chambres.insert("", "end", values=chambre)
+
+# *** Onglets ***
+tabs = ttk.Notebook(root)
+tab_clients = ttk.Frame(tabs)
+tab_chambres = ttk.Frame(tabs)
+tab_categories = ttk.Frame(tabs)
+tab_reservations = ttk.Frame(tabs)
+tab_paiements = ttk.Frame(tabs)
+tabs.add(tab_clients, text="Clients")
+tabs.add(tab_chambres, text="Chambres")
+tabs.add(tab_categories, text="Catégories")
+tabs.add(tab_reservations, text="Réservations")
+tabs.add(tab_paiements, text="Paiements")
+tabs.pack(expand=1, fill="both")
+
+# *** Tab Clients ***
+frame_clients = ttk.Frame(tab_clients)
+frame_clients.pack(pady=10)
+
+tableau_clients = ttk.Treeview(frame_clients, columns=("id", "nom", "prenom", "date_naissance", "adresse", "pays_origine", "nationalite", "numero_identite", "email", "telephone"), show="headings")
+for col in tableau_clients["columns"]:
+    tableau_clients.heading(col, text=col)
+tableau_clients.pack()
+
+frame_form_clients = ttk.Frame(tab_clients)
+frame_form_clients.pack(pady=10)
+
+tk.Label(frame_form_clients, text="Nom").grid(row=0, column=0)
+entry_nom = tk.Entry(frame_form_clients)
+entry_nom.grid(row=0, column=1)
+
+tk.Label(frame_form_clients, text="Prénom").grid(row=1, column=0)
+entry_prenom = tk.Entry(frame_form_clients)
+entry_prenom.grid(row=1, column=1)
+
+tk.Label(frame_form_clients, text="Date de Naissance").grid(row=2, column=0)
+entry_date_naissance = tk.Entry(frame_form_clients)
+entry_date_naissance.grid(row=2, column=1)
+
+tk.Label(frame_form_clients, text="Adresse").grid(row=3, column=0)
+entry_adresse = tk.Entry(frame_form_clients)
+entry_adresse.grid(row=3, column=1)
+
+tk.Label(frame_form_clients, text="Pays d'origine").grid(row=4, column=0)
+entry_pays = tk.Entry(frame_form_clients)
+entry_pays.grid(row=4, column=1)
+
+tk.Label(frame_form_clients, text="Nationalité").grid(row=5, column=0)
+entry_nationalite = tk.Entry(frame_form_clients)
+entry_nationalite.grid(row=5, column=1)
+
+tk.Label(frame_form_clients, text="Numéro d'identité").grid(row=6, column=0)
+entry_identite = tk.Entry(frame_form_clients)
+entry_identite.grid(row=6, column=1)
+
+tk.Label(frame_form_clients, text="Email").grid(row=7, column=0)
+entry_email = tk.Entry(frame_form_clients)
+entry_email.grid(row=7, column=1)
+
+tk.Label(frame_form_clients, text="Téléphone").grid(row=8, column=0)
+entry_telephone = tk.Entry(frame_form_clients)
+entry_telephone.grid(row=8, column=1)
+
+tk.Button(frame_form_clients, text="Ajouter Client", command=ajouter_client).grid(row=9, column=0, columnspan=2)
+tk.Button(tab_clients, text="Afficher les Clients", command=afficher_clients).pack(pady=10)
+
+# *** Tab Chambres ***
+frame_chambres = ttk.Frame(tab_chambres)
+frame_chambres.pack(pady=10)
+
+tableau_chambres = ttk.Treeview(frame_chambres, columns=("id", "numero_chambre", "categorie", "prix_par_nuit"), show="headings")
+for col in tableau_chambres["columns"]:
+    tableau_chambres.heading(col, text=col)
+tableau_chambres.pack()
+
+tk.Button(tab_chambres, text="Afficher les Chambres", command=afficher_chambres).pack(pady=10)
+
+# *** Charger les données au démarrage ***
 afficher_clients()
+afficher_chambres()
 
 # Lancer l'application
 root.mainloop()
