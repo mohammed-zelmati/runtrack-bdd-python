@@ -36,6 +36,28 @@ def ajouter_produit():
                    (name, description, price, quantity, id_category))
     conn.commit()
     afficher_produits()
+    
+# Supprimer un ou plusieurs produits
+def supprimer_produit():
+    selected_items = tableau.selection()  # Obtenez les éléments sélectionnés
+    if not selected_items:
+        messagebox.showwarning("Avertissement", "Veuillez sélectionner un produit à supprimer.")
+        return
+
+    confirm = messagebox.askyesno("Confirmation", "Êtes-vous sûr de vouloir supprimer les produits sélectionnés ?")
+    if not confirm:
+        return
+
+    for item in selected_items:
+        values = tableau.item(item, "values")  # Obtenez les données du produit
+        product_id = values[0]  # L'ID du produit est dans la première colonne
+        cursor.execute("DELETE FROM product WHERE id = %s", (product_id,))
+        conn.commit()
+        tableau.delete(item)  # Supprimez l'élément du tableau
+
+    messagebox.showinfo("Succès", "Le(s) produit(s) ont été supprimé(s) avec succès.")
+    afficher_produits()
+
 
 # Tableau des produits
 tableau = ttk.Treeview(root, columns=("id", "name", "description", "price", "quantity", "id_category"), show="headings")
@@ -71,5 +93,8 @@ tk.Button(frame_form, text="Ajouter", command=ajouter_produit).grid(row=5, colum
 
 # Charger les produits au démarrage
 afficher_produits()
+
+# Bouton pour supprimer un produit
+tk.Button(root, text="Supprimer le produit", command=supprimer_produit).pack(pady=10)
 
 root.mainloop()
