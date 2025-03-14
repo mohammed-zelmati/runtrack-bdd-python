@@ -36,6 +36,67 @@ def ajouter_produit():
                    (name, description, price, quantity, id_category))
     conn.commit()
     afficher_produits()
+
+# Modifier un produit
+def modifier_produit():
+    selected_item = tableau.selection()  # Obtenez l'élément sélectionné
+    if not selected_item:
+        messagebox.showwarning("Avertissement", "Veuillez sélectionner un produit à modifier.")
+        return
+
+    values = tableau.item(selected_item[0], "values")  # Obtenez les données du produit
+    product_id = values[0]  # L'ID du produit est dans la première colonne
+
+    # Afficher une fenêtre pour modifier les informations
+    modif_window = tk.Toplevel(root)
+    modif_window.title("Modifier le produit")
+
+    # Champs pour modification
+    tk.Label(modif_window, text="Nom").grid(row=0, column=0)
+    modif_name = tk.Entry(modif_window)
+    modif_name.grid(row=0, column=1)
+    modif_name.insert(0, values[1])  # Nom existant
+
+    tk.Label(modif_window, text="Description").grid(row=1, column=0)
+    modif_description = tk.Entry(modif_window)
+    modif_description.grid(row=1, column=1)
+    modif_description.insert(0, values[2])  # Description existante
+
+    tk.Label(modif_window, text="Prix").grid(row=2, column=0)
+    modif_price = tk.Entry(modif_window)
+    modif_price.grid(row=2, column=1)
+    modif_price.insert(0, values[3])  # Prix existant
+
+    tk.Label(modif_window, text="Quantité").grid(row=3, column=0)
+    modif_quantity = tk.Entry(modif_window)
+    modif_quantity.grid(row=3, column=1)
+    modif_quantity.insert(0, values[4])  # Quantité existante
+
+    tk.Label(modif_window, text="ID Catégorie").grid(row=4, column=0)
+    modif_category = tk.Entry(modif_window)
+    modif_category.grid(row=4, column=1)
+    modif_category.insert(0, values[5])  # ID catégorie existant
+
+    # Enregistrer les modifications
+    def sauvegarder_modifications():
+        new_name = modif_name.get()
+        new_description = modif_description.get()
+        new_price = int(modif_price.get())
+        new_quantity = int(modif_quantity.get())
+        new_category = int(modif_category.get())
+
+        cursor.execute("""
+        UPDATE product
+        SET name = %s, description = %s, price = %s, quantity = %s, id_category = %s
+        WHERE id = %s
+        """, (new_name, new_description, new_price, new_quantity, new_category, product_id))
+        conn.commit()
+        messagebox.showinfo("Succès", "Le produit a été modifié avec succès.")
+        modif_window.destroy()
+        afficher_produits()
+
+    tk.Button(modif_window, text="Enregistrer", command=sauvegarder_modifications).grid(row=5, column=1)
+
     
 # Supprimer un ou plusieurs produits
 def supprimer_produit():
@@ -93,6 +154,8 @@ tk.Button(frame_form, text="Ajouter", command=ajouter_produit).grid(row=5, colum
 
 # Charger les produits au démarrage
 afficher_produits()
+
+tk.Button(root, text="Modifier le produit", command=modifier_produit).pack(pady=10)
 
 # Bouton pour supprimer un produit
 tk.Button(root, text="Supprimer le produit", command=supprimer_produit).pack(pady=10)
